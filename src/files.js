@@ -29,8 +29,8 @@ export const FileList = props => (
             medium={
                 <FileDatagrid rowStyle={disableRow}>
                     <TextField source="title" />
-                    <TextField source="m_users" />
-                    <ArrayField source="channels">
+                    <TextField label="User" source="m_users" />
+                    <ArrayField label="Channel" source="m_channels">
                         <SingleFieldList>
                             <ChipField source="name" />
                         </SingleFieldList>

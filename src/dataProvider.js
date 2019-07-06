@@ -9,21 +9,12 @@ import {
     DELETE,
     fetchUtils,
 } from 'react-admin';
+
 import { get, post, put, del } from 'fetchutils';
+import Helper from './helper.js';
 
 const API_URL = 'https://slack.com/api';
 const TOKEN = localStorage.getItem('auth') ? JSON.parse(localStorage.getItem('auth')).access_token : '';
-// const LIST_OBJECT_DEPENDENT = {
-//     'channels': [],
-//     'users': ['channels'],
-//     'files': ['channels', 'users']
-// };
-const MAPPING_RESOURCE_NAME_API = {
-    'files': 'files',
-    'users': 'members',
-    'channels': 'channels'
-};
-
 const PREFIX = 'm_';
 
 /**
@@ -49,29 +40,27 @@ export default (type, resource, params) => {
                         return handleData(params, storageObject);
                     }
                     return Promise.all([getAllChannels(), getAllUsers()]).then(values => {
-                        // let allChannels = values[0];
+                        let allChannels = values[0];
                         let allUsers = values[1];
-                        return getAllFiles(allUsers).then(allFiles => {
-                            let result = handleData(params, allFiles);
-                            return result;
+                        return getAllFiles(allChannels, allUsers).then(allFiles => {
+                            return handleData(params, allFiles);
                         });
                     })
+                case "users":
+                    return getAllUsers().then(users => {
+                        return handleData(params, users);
+                    });
+                case "channels":
+                    return getAllChannels().then(channels => {
+                        return handleData(params, channels);
+                    });
+                case "groups":
+                    return getAllGroups().then(groups => {
+                        return handleData(params, groups);
+                    });
             }
             break;
         // case GET_MANY:
-        //     if (sessionStorage.getItem(resource)) {
-        //         return filterByListId(
-        //             params.ids,
-        //             JSON.parse(sessionStorage.getItem(resource)),
-        //             resource
-        //         );
-        //     } else {
-        //         get(`${API_URL}/${resource}.list?token=${TOKEN}&count=1000`).then(response => {
-        //             sessionStorage.setItem(resource, JSON.stringify(response), resource);
-        //             return filterByListId(params.ids, response);
-        //         });
-        //     }
-        //     break;
         default:
             return;
     }
@@ -85,20 +74,17 @@ export default (type, resource, params) => {
  */
 
 const handleData = (params, data) => {
-    let list = data;
-
     // Sort
-    list = sortData(params.sort.field, params.sort.order, list);
+    let list = Helper.stableSort(
+        data,
+        Helper.getSorting(params.sort.order, params.sort.field)
+    );
     // Pagination
     let {page, perPage} = params.pagination;
     return {
         data: pagination(page, perPage, list),
         total: list.length
     };
-}
-
-const sortData = (field, order, data) => {
-    return stableSort(data, getSorting(order, field));
 }
 
 const pagination = (page, perPage, data) => {
@@ -108,65 +94,20 @@ const pagination = (page, perPage, data) => {
     return data.slice(startSlice, endSlice);
 }
 
-function desc(a, b, field) {
-    let valA = a[field];
-    let valB = b[field];
-    let tempArray = field.split('.');
-    if (tempArray.length === 2) {
-        valA = a[tempArray[0]][tempArray[1]];
-        valB = b[tempArray[0]][tempArray[1]];
-    }
-    if (valB < valA) {
-      return -1;
-    }
-    if (valB > valA) {
-      return 1;
-    }
-    return 0;
-  }
-  
-function stableSort(array, cmp) {
-    const stabilizedThis = array.map((el, index) => [el, index]);
-    stabilizedThis.sort((a, b) => {
-        const order = cmp(a[0], b[0]);
-        if (order !== 0) return order;
-        return a[1] - b[1];
-    });
-    return stabilizedThis.map(el => el[0]);
-}
-
-function getSorting(order, field) {
-    return order == 'DESC' ? (a, b) => desc(a, b, field) : (a, b) => -(desc(a, b, field));
-}
-
-/**
- * type
- * resource
- * params
- */
-
-function getListData(type, resource, params) {
-    if (sessionStorage.getItem(resource)) {
-        return handleData(type, resource, params, JSON.parse(sessionStorage.getItem(resource)));
-    } else {
-        get(`${API_URL}/${resource}.list?token=${TOKEN}&count=1000`).then(response => {
-            sessionStorage.setItem(resource, JSON.stringify(response));
-            return handleData(type, resource, params, response);
-        });
-    }
-}
-
-const defaultParam = {
-    filter: {},
-    pagination: {page: 1, perPage: 10},
-    sort: {field: "id", order: "DESC"}
-};
-
 function getAllChannels() {
     return new Promise(function(resolve, reject) {
         get(`${API_URL}/channels.list?token=${TOKEN}&count=1000`).then(response => {
-            sessionStorage.setItem('channels', JSON.stringify(response));
+            sessionStorage.setItem('channels', JSON.stringify(response.channels));
             resolve(response.channels);
+        });
+    })
+}
+
+function getAllGroups() {
+    return new Promise(function(resolve, reject) {
+        get(`${API_URL}/groups.list?token=${TOKEN}`).then(response => {
+            sessionStorage.setItem('groups', JSON.stringify(response.groups));
+            resolve(response.groups);
         });
     })
 }
@@ -174,24 +115,22 @@ function getAllChannels() {
 function getAllUsers() {
     return new Promise(function(resolve, reject) {
         get(`${API_URL}/users.list?token=${TOKEN}&count=1000`).then(response => {
-            sessionStorage.setItem('users', JSON.stringify(response));
+            sessionStorage.setItem('users', JSON.stringify(response.members));
             resolve(response.members);
         });
     })
 }
 
 
-function getAllFiles(listUsers, listChannels) {
+function getAllFiles(listChannels, listUsers) {
     return new Promise(function(resolve, reject) {
         get(`${API_URL}/files.list?token=${TOKEN}&count=1000`).then(response => {
             let listFiles = response.files;
             let result = [];
             for (let i = 0; i < listFiles.length; i++) {
                 result[i] = listFiles[i];
-                result[i][PREFIX + 'users'] = getNameOfUserByFile(listUsers, listFiles[i]);
-                for (let j = 0; j < listChannels; j++) {
-
-                }
+                result[i][PREFIX + 'users'] = getUserNameByFile(listUsers, listFiles[i]);
+                result[i][PREFIX + 'channels'] = getChannelNamesByFile(listChannels, listFiles[i]);
             }
             sessionStorage.setItem('files', JSON.stringify(result));
             resolve(result);
@@ -206,7 +145,7 @@ function getAllFiles(listUsers, listChannels) {
  * @param file object
  * @return string
  */
-function getNameOfUserByFile(listUsers, file) {
+function getUserNameByFile(listUsers, file) {
     let result = 'no name';
     for (let j = 0; j < listUsers.length; j++) {
         if (file['user'] === listUsers[j]['id']) {
@@ -218,3 +157,33 @@ function getNameOfUserByFile(listUsers, file) {
     return result;
 }
 
+/**
+ * 
+ * @param {array} listChannels 
+ * @param {object} file 
+ * 
+ * @return array
+ */
+
+function getChannelNamesByFile(listChannels, file) {
+    let uniqueChannels = file.channels.filter(function(item, pos) {
+        return file.channels.indexOf(item) == pos;
+    })
+    let result = [];
+
+    for (let i = 0; i < uniqueChannels.length; i++) {
+        for (let j = 0; j < listChannels.length; j++) {
+            if (uniqueChannels[i] === listChannels[j].id) {
+                if (result.find(obj => obj.id === listChannels[j].id)) {
+                    console.error(file);
+                }
+                result.push({
+                    id: listChannels[j].id,
+                    name: listChannels[j].name
+                });
+            }
+        }
+    }
+
+    return result;
+}

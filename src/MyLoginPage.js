@@ -16,7 +16,7 @@ class MyLoginPage extends Component {
     render() {
         return (
             <a href="https://slack.com/oauth/authorize?
-                scope=files%3Awrite%3Auser+users%3Aread+files%3Aread+search%3Aread+channels%3Aread
+                scope=files%3Awrite%3Auser+users%3Aread+files%3Aread+search%3Aread+channels%3Aread+groups%3Aread
                 &client_id=231613720450.347038352342">
                 <img alt="Sign in with Slack"
                 height="40" width="172"
