@@ -74,6 +74,8 @@ export default (type, resource, params) => {
  */
 
 const handleData = (params, data) => {
+    // Filter
+    data = data.filter(value => filter(value, params.filter));
     // Sort
     let list = Helper.stableSort(
         data,
@@ -85,6 +87,44 @@ const handleData = (params, data) => {
         data: pagination(page, perPage, list),
         total: list.length
     };
+}
+
+function filter(data, filters) {
+    const filterKeys = Object.keys(filters);
+
+    for (let key of filterKeys) {
+        // check filter is array
+        if (Array.isArray(filters[key])) {
+            let isCheckArray = false;
+            for (let v of filters[key]) {
+                if (Array.isArray(data[key])) {
+                    if (filterDataArray(v, data[key])) {
+                        isCheckArray = true;
+                        break;
+                    }
+                } else if (data[key] === v) {
+                    isCheckArray = true;
+                    break;
+                }
+            }
+            if (!isCheckArray) return false;
+        } else if (Array.isArray(data[key])) {
+            if (!filterDataArray(filters[key], data[key])) return false;
+        } else if (data[key] !== filters[key]) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+function filterDataArray(filterValue, dataArray) {
+    for (let v of dataArray) {
+        if (filterValue === v) {
+            return true;
+        }
+    }
+    return false;
 }
 
 const pagination = (page, perPage, data) => {
@@ -129,6 +169,8 @@ function getAllFiles(listChannels, listUsers) {
             let result = [];
             for (let i = 0; i < listFiles.length; i++) {
                 result[i] = listFiles[i];
+                // Convert timestamp to milliseconds for new Date(milliseconds)
+                result[i].created = result[i].created * 1000;
                 result[i][PREFIX + 'users'] = getUserNameByFile(listUsers, listFiles[i]);
                 result[i][PREFIX + 'channels'] = getChannelNamesByFile(listChannels, listFiles[i]);
             }
