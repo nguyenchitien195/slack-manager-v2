@@ -6,7 +6,7 @@ import {
     GET_MANY_REFERENCE,
     CREATE,
     UPDATE,
-    DELETE,
+    DELETE_MANY,
     fetchUtils,
 } from 'react-admin';
 
@@ -18,7 +18,7 @@ const TOKEN = localStorage.getItem('auth') ? JSON.parse(localStorage.getItem('au
 const PREFIX = 'm_';
 
 /**
- * @param {string} type Request type, e.g GET_LIST, GET_MANY
+ * @param {string} type Request type, e.g GET_LIST, GET_MANY from react-admin
  * @param {string} resource Resource name, e.g. "posts"
  * @param {Object} payload Request parameters. Depends on the request type
  * @returns {Promise} the Promise for response
@@ -29,13 +29,16 @@ export default (type, resource, params) => {
     console.log(type);
     console.log(resource);
     console.log(params);
+    console.log(TOKEN);
     console.groupEnd();
 
     switch(type) {
         case GET_LIST:
             switch(resource) {
                 case "files":
-                    if (sessionStorage.getItem('files')) {
+                    if (window.demo) {
+                        return handleData(params, window.demo);
+                    } else if (sessionStorage.getItem('files')) {
                         let storageObject = JSON.parse(sessionStorage.getItem('files'));
                         return handleData(params, storageObject);
                     }
@@ -61,6 +64,8 @@ export default (type, resource, params) => {
             }
             break;
         // case GET_MANY:
+        case DELETE_MANY:
+            return deleteFiles(params.ids);
         default:
             return;
     }
@@ -228,4 +233,28 @@ function getChannelNamesByFile(listChannels, file) {
     }
 
     return result;
+}
+
+function deleteFiles(fileIds) {
+    const token = TOKEN;
+    return new Promise(function(resolve, reject) {
+        let files = [];
+        for (let i=0; i < fileIds.length; i++) {
+            fetch(`${API_URL}/files.delete?token=${token}&file=${fileIds[i]}`, {method: 'post'}).then(res => {
+                files[i] = fileIds[i];
+                console.log('axaxaxaxaxax');
+            }).then(response => {
+                console.log(response);
+            }) 
+        }
+        console.log(files);
+        let allFiles = JSON.parse(sessionStorage.getItem('files')).filter(file => {
+            console.log(file);
+            console.log(!files.includes(file.id));
+            debugger;
+            return !files.includes(file.id);
+        });
+        sessionStorage.setItem('files', JSON.stringify(allFiles));
+        window.demo = allFiles;
+    })
 }
