@@ -111,7 +111,7 @@ function filter(data, filters) {
         } else if (Array.isArray(data[key])) {
             if (!filterDataArray(filters[key], data[key])) return false;
         } else if (data[key] !== filters[key]) {
-            return false;
+            if (!searchDataArray(filters[key], data[key])) return false;
         }
     }
     
@@ -123,6 +123,14 @@ function filterDataArray(filterValue, dataArray) {
         if (filterValue === v) {
             return true;
         }
+    }
+    return false;
+}
+
+function searchDataArray(filterValue, dataArray) {
+    let check = dataArray.toLowerCase().indexOf(filterValue.toLowerCase());
+    if (check !== -1) {
+        return true;
     }
     return false;
 }
