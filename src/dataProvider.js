@@ -29,7 +29,6 @@ export default (type, resource, params) => {
     console.log(type);
     console.log(resource);
     console.log(params);
-    console.log(TOKEN);
     console.groupEnd();
 
     switch(type) {
@@ -65,7 +64,7 @@ export default (type, resource, params) => {
             break;
         // case GET_MANY:
         case DELETE_MANY:
-            return deleteFiles(params.ids);
+            deleteFiles(params.ids);
         default:
             return;
     }
@@ -236,22 +235,14 @@ function getChannelNamesByFile(listChannels, file) {
 }
 
 function deleteFiles(fileIds) {
-    const token = TOKEN;
     return new Promise(function(resolve, reject) {
-        let files = [];
+        let files = fileIds;
         for (let i=0; i < fileIds.length; i++) {
-            fetch(`${API_URL}/files.delete?token=${token}&file=${fileIds[i]}`, {method: 'post'}).then(res => {
-                files[i] = fileIds[i];
-                console.log('axaxaxaxaxax');
-            }).then(response => {
-                console.log(response);
-            }) 
+            fetch(`${API_URL}/files.delete?token=${TOKEN}&file=${fileIds[i]}`, {method: 'post'}).then(res => {
+                files = fileIds.filter(file => file !== fileIds[i]);
+            });
         }
-        console.log(files);
         let allFiles = JSON.parse(sessionStorage.getItem('files')).filter(file => {
-            console.log(file);
-            console.log(!files.includes(file.id));
-            debugger;
             return !files.includes(file.id);
         });
         sessionStorage.setItem('files', JSON.stringify(allFiles));
