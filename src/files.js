@@ -38,7 +38,7 @@ export const FileList = props => (
 
 const FileFilter = (props) => (
     <Filter {...props}>
-        <TextInput label="Search" source="q" alwaysOn />
+        <TextInput label="Search" source="name" alwaysOn />
         <AutocompleteArrayInput source="user" choices={ JSON.parse(sessionStorage.getItem('users')) } allowEmpty />
         <AutocompleteArrayInput source="channels" choices={ JSON.parse(sessionStorage.getItem('channels')) } allowEmpty />
         <AutocompleteArrayInput source="filetype" choices={ Helper.getFileTypes() } allowEmpty/>

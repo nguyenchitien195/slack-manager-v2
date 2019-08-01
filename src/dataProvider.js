@@ -6,7 +6,7 @@ import {
     GET_MANY_REFERENCE,
     CREATE,
     UPDATE,
-    DELETE,
+    DELETE_MANY,
     fetchUtils,
 } from 'react-admin';
 
@@ -18,7 +18,7 @@ const TOKEN = localStorage.getItem('auth') ? JSON.parse(localStorage.getItem('au
 const PREFIX = 'm_';
 
 /**
- * @param {string} type Request type, e.g GET_LIST, GET_MANY
+ * @param {string} type Request type, e.g GET_LIST, GET_MANY from react-admin
  * @param {string} resource Resource name, e.g. "files", "users"
  * @param {Object} payload Request parameters. Depends on the request type
  * @returns {Promise} the Promise for response
@@ -35,7 +35,9 @@ export default (type, resource, params) => {
         case GET_LIST:
             switch(resource) {
                 case "files":
-                    if (sessionStorage.getItem('files')) {
+                    if (window.demo) {
+                        return handleData(params, window.demo);
+                    } else if (sessionStorage.getItem('files')) {
                         let storageObject = JSON.parse(sessionStorage.getItem('files'));
                         return handleData(params, storageObject);
                     }
@@ -61,6 +63,8 @@ export default (type, resource, params) => {
             }
             break;
         // case GET_MANY:
+        case DELETE_MANY:
+            deleteFiles(params.ids);
         default:
             return;
     }
@@ -133,7 +137,7 @@ function filter(data, filters) {
         } else if (Array.isArray(data[key])) {
             if (!filterDataArray(filters[key], data[key])) return false;
         } else if (data[key] !== filters[key]) {
-            return false;
+            if (!searchDataArray(filters[key], data[key])) return false;
         }
     }
     
@@ -145,6 +149,14 @@ function filterDataArray(filterValue, dataArray) {
         if (filterValue === v) {
             return true;
         }
+    }
+    return false;
+}
+
+function searchDataArray(filterValue, dataArray) {
+    let check = dataArray.toLowerCase().indexOf(filterValue.toLowerCase());
+    if (check !== -1) {
+        return true;
     }
     return false;
 }
@@ -250,4 +262,20 @@ function getChannelNamesByFile(listChannels, file) {
     }
 
     return result;
+}
+
+function deleteFiles(fileIds) {
+    return new Promise(function(resolve, reject) {
+        let files = fileIds;
+        for (let i=0; i < fileIds.length; i++) {
+            fetch(`${API_URL}/files.delete?token=${TOKEN}&file=${fileIds[i]}`, {method: 'post'}).then(res => {
+                files = fileIds.filter(file => file !== fileIds[i]);
+            });
+        }
+        let allFiles = JSON.parse(sessionStorage.getItem('files')).filter(file => {
+            return !files.includes(file.id);
+        });
+        sessionStorage.setItem('files', JSON.stringify(allFiles));
+        window.demo = allFiles;
+    })
 }
