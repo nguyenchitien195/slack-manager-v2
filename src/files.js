@@ -2,18 +2,14 @@
 import React from 'react';
 import { List, Filter, Datagrid, DatagridBody, Responsive, SimpleList, SingleFieldList } from 'react-admin';
 import { TextField, ImageField, FunctionField, DateField, ArrayField, ChipField, FileField } from 'react-admin';
-import { TextInput, BooleanInput, AutocompleteArrayInput } from 'react-admin';
+import { TextInput, SelectArrayInput, AutocompleteArrayInput } from 'react-admin';
 import Helper from './helper.js';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import Checkbox from '@material-ui/core/Checkbox';
 
-const PostTitle = ({ record }) => {
-    return <span>Post {record ? `"${record.title}"` : ''}</span>;
-};
-
 export const FileList = props => (
-    <List filters={<FileFilter />} {...props}>
+    <List filters={<FileFilter />} {...props} >
         <Responsive
             small={
                 <SimpleList
@@ -45,6 +41,7 @@ const FileFilter = (props) => (
         <TextInput label="Search" source="q" alwaysOn />
         <AutocompleteArrayInput source="user" choices={ JSON.parse(sessionStorage.getItem('users')) } allowEmpty />
         <AutocompleteArrayInput source="channels" choices={ JSON.parse(sessionStorage.getItem('channels')) } allowEmpty />
+        <AutocompleteArrayInput source="filetype" choices={ Helper.getFileTypes() } allowEmpty/>
     </Filter>
 );
 

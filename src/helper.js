@@ -1,4 +1,17 @@
 class Helper{
+    static getFileTypes(){
+        return [
+            {id: 'jpg', name: 'jpg'},
+            {id: 'png', name: 'png'},
+            {id: 'gif', name: 'gif'},
+            {id: 'zip', name: 'zip'},
+            {id: 'text', name: 'text'},
+            {id: 'doc', name: 'doc'},
+            {id: 'docx', name: 'docx'},
+            {id: 'pdf', name: 'pdf'},
+            {id: 'mp4', name: 'mp4'}
+        ];
+    }
 
     static convertDate(unixtimestamp){
         // Months array
