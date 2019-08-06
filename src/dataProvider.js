@@ -82,7 +82,7 @@ const handleData = (params, data) => {
     data = data.filter(value => filter(value, params.filter));
     if (Array.isArray(data) && data.length > 0) {
         if (data[0].hasOwnProperty('filetype')) {
-            // Set text of span on AppBar
+            // Set text of span on AppBar: set total size
             if (document.getElementById('react-admin-title')) {
                 document.getElementById('react-admin-title').childNodes[0].innerHTML = Helper.toSizeString(getSizeOfListFile(data));
             } else {
