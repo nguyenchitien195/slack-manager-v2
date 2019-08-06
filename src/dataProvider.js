@@ -19,7 +19,7 @@ const PREFIX = 'm_';
 
 /**
  * @param {string} type Request type, e.g GET_LIST, GET_MANY from react-admin
- * @param {string} resource Resource name, e.g. "posts"
+ * @param {string} resource Resource name, e.g. "files", "users"
  * @param {Object} payload Request parameters. Depends on the request type
  * @returns {Promise} the Promise for response
  */
@@ -80,6 +80,18 @@ export default (type, resource, params) => {
 const handleData = (params, data) => {
     // Filter
     data = data.filter(value => filter(value, params.filter));
+    if (Array.isArray(data) && data.length > 0) {
+        if (data[0].hasOwnProperty('filetype')) {
+            // Set text of span on AppBar: set total size
+            if (document.getElementById('react-admin-title')) {
+                document.getElementById('react-admin-title').childNodes[0].innerHTML = Helper.toSizeString(getSizeOfListFile(data));
+            } else {
+                document.addEventListener("DOMContentLoaded", function() { 
+                    document.getElementById('react-admin-title').childNodes[0].innerHTML = Helper.toSizeString(getSizeOfListFile(data));
+                });
+            }
+        }
+    }
     // Sort
     let list = Helper.stableSort(
         data,
@@ -92,6 +104,16 @@ const handleData = (params, data) => {
         total: list.length
     };
 }
+
+function getSizeOfListFile(files) {
+    let size = 0;
+    for (let file of files) {
+        size += file.size;
+    }
+    
+    return size;
+}
+
 
 function filter(data, filters) {
     const filterKeys = Object.keys(filters);

@@ -1,5 +1,4 @@
 import React from 'react';
-// import logo from './logo.svg';
 import './App.css';
 import { Admin, Resource } from 'react-admin';
 import { UserList } from './users';
@@ -12,9 +11,10 @@ import Dashboard from './Dashboard';
 import authProvider from './authProvider';
 import dataProvider from './dataProvider';
 import MyLoginPage from './MyLoginPage';
+import MyLayout from './MyLayout';
 
 const App = () => (
-  <Admin loginPage={MyLoginPage} dashboard={Dashboard} authProvider={authProvider} dataProvider={dataProvider}>
+  <Admin appLayout={MyLayout} loginPage={MyLoginPage} dashboard={Dashboard} authProvider={authProvider} dataProvider={dataProvider}>
     <Resource name="files" list={FileList} icon={FileIcon} />
     <Resource name="users" list={UserList} icon={UserIcon} />
     <Resource name="channels" list={ChannelList} icon={UserIcon} />

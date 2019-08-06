@@ -1,25 +1,33 @@
 <script>
     function initSlack() {
         let url = new URL(window.location.href); 
-        let search_params = url.searchParams;
         let params = {};
-        params.code = search_params.get('code');
-        params.state = search_params.get('state');
+        params.code = url.searchParams.get('code');
+        params.state = url.searchParams.get('state');
         localStorage.setItem('pre-auth', JSON.stringify(params));
         getToken();
     }
 
     function getToken() {
-        let request = new XMLHttpRequest();
-        let client_id = '231613720450.347038352342';
-        let client_secret = '0cba2bc4574755e161719c48068e6a2b';
-        let auth = JSON.parse(localStorage.getItem('pre-auth'));
+        const request = new XMLHttpRequest();
+        const client_id = '231613720450.347038352342';
+        const client_secret = '0cba2bc4574755e161719c48068e6a2b';
+        const auth = JSON.parse(localStorage.getItem('pre-auth'));
         request.open('GET', 'https://slack.com/api/oauth.access?client_id='+client_id+'&client_secret='+client_secret+'&code='+auth.code, true);
         request.send(null);
         request.onreadystatechange = function() {
             if (request.readyState == 4 && request.status == 200) {
                 localStorage.setItem('auth', request.responseText);
-                location.href = '/';
+                const user = JSON.parse(localStorage.getItem('auth')).user_id;
+                const token = JSON.parse(localStorage.getItem('auth')).access_token;
+                request.open('GET', 'https://slack.com/api/users.info?user=' + user + '&token=' + token, true);
+                request.send(null);
+                request.onreadystatechange = function() {
+                    if (request.readyState == 4 && request.status == 200) {
+                        localStorage.setItem('user', request.responseText);
+                        location.href = '/';
+                    }
+                }
             }
         };
     }
