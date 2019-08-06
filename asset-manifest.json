@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/slack-manager-v2/static/css/main.a7ec14da.chunk.css",
+    "main.js": "/slack-manager-v2/static/js/main.e76e5539.chunk.js",
+    "main.js.map": "/slack-manager-v2/static/js/main.e76e5539.chunk.js.map",
+    "runtime~main.js": "/slack-manager-v2/static/js/runtime~main.c9d1c6b3.js",
+    "runtime~main.js.map": "/slack-manager-v2/static/js/runtime~main.c9d1c6b3.js.map",
+    "static/js/2.6a0ed31b.chunk.js": "/slack-manager-v2/static/js/2.6a0ed31b.chunk.js",
+    "static/js/2.6a0ed31b.chunk.js.map": "/slack-manager-v2/static/js/2.6a0ed31b.chunk.js.map",
+    "index.html": "/slack-manager-v2/index.html",
+    "precache-manifest.6697f6e283c38d547e7cf65ff1589390.js": "/slack-manager-v2/precache-manifest.6697f6e283c38d547e7cf65ff1589390.js",
+    "service-worker.js": "/slack-manager-v2/service-worker.js",
+    "static/css/main.a7ec14da.chunk.css.map": "/slack-manager-v2/static/css/main.a7ec14da.chunk.css.map"
+  }
+}
