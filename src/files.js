@@ -1,83 +1,47 @@
 // in src/files.js
 import React from 'react';
-import { List, Edit, Create, Filter, Datagrid, DatagridBody, Responsive, SimpleList, SingleFieldList } from 'react-admin';
-import { TextField, ImageField, ReferenceField, EditButton, SimpleForm, FunctionField, ArrayField, ChipField  } from 'react-admin';
-import { ReferenceInput, SelectInput, TextInput, LongTextInput, ArrayInput } from 'react-admin';
+import { List, Filter, Datagrid, DatagridBody, Responsive, SimpleList, SingleFieldList } from 'react-admin';
+import { TextField, ImageField, FunctionField, DateField, ArrayField, ChipField, FileField } from 'react-admin';
+import { TextInput, SelectArrayInput, AutocompleteArrayInput } from 'react-admin';
 import Helper from './helper.js';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import Checkbox from '@material-ui/core/Checkbox';
 
-const PostTitle = ({ record }) => {
-    return <span>Post {record ? `"${record.title}"` : ''}</span>;
-};
-
-const disableRow = (record, index) => ({
-    pointerEvents: record.id === 'FKH82KMF0' ? 'none' : 'auto',
-    background: record.id === 'FKH82KMF0' ? 'lightgray': ''
-});
 export const FileList = props => (
-    <List filters={<FileFilter />} {...props}>
+    <List filters={<FileFilter />} {...props} >
         <Responsive
             small={
                 <SimpleList
                     primaryText={record => record.title}
-                    secondaryText={record => `${record.views} views`}
-                    tertiaryText={record => new Date(record.published_at).toLocaleDateString()}
+                    secondaryText={record => record.m_users}
+                    tertiaryText={record => new Date(record.created).toLocaleDateString()}
                 />
             }
             medium={
-                <FileDatagrid rowStyle={disableRow}>
-                    <TextField source="title" />
-                    <TextField source="m_users" />
-                    <ArrayField source="channels">
+                <FileDatagrid>
+                    <FileField label="File" source="url_private" src="url_private" title="title" target="_blank" />
+                    <TextField label="User" source="m_users" />
+                    <ArrayField label="Channel" source="m_channels" sortable={false} >
                         <SingleFieldList>
                             <ChipField source="name" />
                         </SingleFieldList>
                     </ArrayField>
-                    <ImageField source="thumb_80" />
+                    <ImageField label="Thumbnail" source="thumb_80" sortable={false} />
                     <FunctionField source="size" render={record => Helper.toSizeString(record.size)} />
-                    <FunctionField source="created" render={record => Helper.convertDate(record.created)} />
-                    <EditButton />
+                    <DateField source="created" locales="fr-FR"/>
                 </FileDatagrid>
             }
         />
     </List>
 );
 
-export const FileCreate = props => (
-    <Create {...props}>
-        <SimpleForm>
-            <ReferenceInput source="userId" reference="users">
-                <SelectInput optionText="name" />
-            </ReferenceInput>
-            <TextInput source="title" />
-            <LongTextInput source="body" />
-        </SimpleForm>
-    </Create>
-);
-
-export const FileEdit = props => (
-    <Edit title={<PostTitle />} {...props}>
-        <SimpleForm>
-            <ReferenceInput source="userId" reference="users">
-               <SelectInput optionText="name" />
-            </ReferenceInput>
-            <TextInput source="title" />
-           <LongTextInput source="body" />
-        </SimpleForm>
-    </Edit>
-);
-
 const FileFilter = (props) => (
     <Filter {...props}>
-        <TextInput label="Search" source="q" alwaysOn />
-        <ReferenceInput label="User" source="name_of_user" reference="users" allowEmpty>
-            <SelectInput optionText="User" />
-        </ReferenceInput>
-        <ReferenceInput label="Channels" source="userId" reference="channels" allowEmpty>
-            <SelectInput optionText="Channels" />
-        </ReferenceInput>
+        <TextInput label="Search" source="name" alwaysOn />
+        <AutocompleteArrayInput source="user" choices={ JSON.parse(sessionStorage.getItem('users')) } allowEmpty />
+        <AutocompleteArrayInput source="channels" choices={ JSON.parse(sessionStorage.getItem('channels')) } allowEmpty />
+        <AutocompleteArrayInput source="filetype" choices={ Helper.getFileTypes() } allowEmpty/>
     </Filter>
 );
 
