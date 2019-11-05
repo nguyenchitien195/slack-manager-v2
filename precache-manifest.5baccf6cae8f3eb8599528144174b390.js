@@ -1,10 +1,10 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "37b23cac5246b76342b6b31b1adeb3f1",
+    "revision": "1a181e2a0c00c1258ed87fe1abfa48d9",
     "url": "/slack-manager-v2/index.html"
   },
   {
-    "revision": "434a15d58c887f718985",
+    "revision": "a92086b4321346eca934",
     "url": "/slack-manager-v2/static/css/main.a7ec14da.chunk.css"
   },
   {
@@ -12,8 +12,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/slack-manager-v2/static/js/2.60a8c322.chunk.js"
   },
   {
-    "revision": "434a15d58c887f718985",
-    "url": "/slack-manager-v2/static/js/main.89d0b790.chunk.js"
+    "revision": "a92086b4321346eca934",
+    "url": "/slack-manager-v2/static/js/main.26c3a3b5.chunk.js"
   },
   {
     "revision": "c04df031ade882b9b736",
