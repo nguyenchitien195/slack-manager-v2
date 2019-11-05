@@ -7,6 +7,6 @@ import CardHeader from '@material-ui/core/CardHeader';
 export default () => (
     <Card>
         <CardHeader title="Welcome to the administration" />
-        <CardContent>Lorem ipsum sic dolor amet...</CardContent>
+        <CardContent>Go to this one to Delete unnecessary files <a href="https://nguyenchitien195.github.io/slack-manager-v2/#/files">File manager</a></CardContent>
     </Card>
 );

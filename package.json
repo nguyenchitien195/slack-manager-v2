@@ -2,22 +2,25 @@
   "name": "slack-manager-v2",
   "version": "0.1.0",
   "private": true,
+  "homepage": "http://nguyenchitien195.github.io/slack-manager-v2",
   "dependencies": {
     "admin-on-rest": "^1.4.1",
     "fetchutils": "0.0.1",
-    "history": "^4.9.0",
-    "ra-data-json-server": "^2.9.2",
-    "ra-data-simple-rest": "^2.9.2",
-    "react": "^16.8.6",
-    "react-admin": "^2.9.2",
-    "react-dom": "^16.8.6",
+    "history": "^4.10.1",
+    "ra-data-json-server": "^2.9.8",
+    "ra-data-simple-rest": "^2.9.8",
+    "react": "^16.11.0",
+    "react-admin": "^2.9.8",
+    "react-dom": "^16.11.0",
     "react-scripts": "3.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -33,5 +36,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "gh-pages": "^2.1.1"
   }
 }
