@@ -15,6 +15,7 @@ import Helper from './helper.js';
 
 const API_URL = 'https://slack.com/api';
 const TOKEN = localStorage.getItem('auth') ? JSON.parse(localStorage.getItem('auth')).access_token : '';
+const CURRENT_USER = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).user : '';
 const PREFIX = 'm_';
 
 /**
@@ -81,7 +82,7 @@ const handleData = (params, data) => {
     // Filter
     data = data.filter(value => filter(value, params.filter));
     if (Array.isArray(data) && data.length > 0) {
-        if (data[0].hasOwnProperty('filetype')) {
+        if (data[0] && data[0].hasOwnProperty('filetype')) {
             // Set text of span on AppBar: set total size
             if (document.getElementById('react-admin-title')) {
                 document.getElementById('react-admin-title').childNodes[0].innerHTML = Helper.toSizeString(getSizeOfListFile(data));
@@ -171,15 +172,34 @@ const pagination = (page, perPage, data) => {
 function getAllChannels() {
     return new Promise(function(resolve, reject) {
         get(`${API_URL}/channels.list?token=${TOKEN}&count=1000`).then(response => {
-            sessionStorage.setItem('channels', JSON.stringify(response.channels));
-            resolve(response.channels);
+            const finalChannels = compactChannels(response.channels);
+            sessionStorage.setItem('channels', JSON.stringify(compactChannels(finalChannels)));
+            resolve(finalChannels);
         });
     })
 }
 
+/**
+ * compactChannels()
+ * 
+ * Remove archive channel
+ * Remove channel that member not join
+*/ 
+function compactChannels(channels) {
+    if (CURRENT_USER.is_dev) {
+        return channels;
+    } else {
+        return channels.filter((channel) => !channel.is_archived && channel.members.includes(CURRENT_USER.id));
+    }
+}
+
 function getAllGroups() {
     return new Promise(function(resolve, reject) {
-        get(`${API_URL}/groups.list?token=${TOKEN}`).then(response => {
+        let param = '';
+        if (CURRENT_USER.is_dev) {
+            param = '&exclude_archived=true';
+        }
+        get(`${API_URL}/groups.list?token=${TOKEN}${param}`).then(response => {
             sessionStorage.setItem('groups', JSON.stringify(response.groups));
             resolve(response.groups);
         });
@@ -198,18 +218,83 @@ function getAllUsers() {
 
 function getAllFiles(listChannels, listUsers) {
     return new Promise(function(resolve, reject) {
-        get(`${API_URL}/files.list?token=${TOKEN}&count=1000`).then(response => {
-            let listFiles = response.files;
+        let param = '';
+        if (!CURRENT_USER.is_admin && !CURRENT_USER.is_dev) {
+            param = `&user=${CURRENT_USER.id}`;
+        }
+        get(`${API_URL}/files.list?token=${TOKEN}${param}&count=100&page=1`).then(response => {
             let result = [];
-            for (let i = 0; i < listFiles.length; i++) {
-                result[i] = listFiles[i];
-                // Convert timestamp to milliseconds for new Date(milliseconds)
-                result[i].created = result[i].created * 1000;
-                result[i][PREFIX + 'users'] = getUserNameByFile(listUsers, listFiles[i]);
-                result[i][PREFIX + 'channels'] = getChannelNamesByFile(listChannels, listFiles[i]);
+
+            response.files.map(file => {
+                if (!CURRENT_USER.is_dev && !file.channels) {
+                    let isInTheChannel = false;
+                    file.channels.map(fChannelId => {
+                        for (let i = 0; i < listChannels.length; i++) {
+                            if (listChannels[i].id === fChannelId) {
+                                isInTheChannel = true;
+                                break;
+                            }
+                        }
+                    })
+
+
+                    if (isInTheChannel) {
+                        file[PREFIX + 'users'] = getUserNameByFile(listUsers, file);
+                        file[PREFIX + 'channels'] = getChannelNamesByFile(listChannels, file);
+                        result.push(file);
+                    }
+                } else {
+                    file[PREFIX + 'users'] = getUserNameByFile(listUsers, file);
+                    file[PREFIX + 'channels'] = getChannelNamesByFile(listChannels, file);
+                    result.push(file);
+                }
+            });
+
+            if (response.paging.pages > 1) {
+                let listUrl = [];
+                for (let page = 2; page <= response.paging.pages; page++) {
+                    listUrl.push(`${API_URL}/files.list?token=${TOKEN}${param}&count=100&page=${page}`);
+                }
+                Promise.all(
+                    listUrl.map(url => {
+                        return get(url).then(res => {
+                            return res;
+                        })
+                    })
+                ).then(values => {
+                    values.map(value => {
+                        value.files.map(file => {
+                            let isInTheChannel = false;
+                            if (!CURRENT_USER.is_dev) {
+                                file.channels.map(fChannelId => {
+                                    for (let i = 0; i < listChannels.length; i++) {
+                                        if (listChannels[i].id === fChannelId) {
+                                            isInTheChannel = true;
+                                            break;
+                                        }
+                                    }
+                                })
+            
+            
+                                if (isInTheChannel) {
+                                    file[PREFIX + 'users'] = getUserNameByFile(listUsers, file);
+                                    file[PREFIX + 'channels'] = getChannelNamesByFile(listChannels, file);
+                                    result.push(file);
+                                }
+                            } else {
+                                file[PREFIX + 'users'] = getUserNameByFile(listUsers, file);
+                                file[PREFIX + 'channels'] = getChannelNamesByFile(listChannels, file);
+                                result.push(file);
+                            }
+                        })
+                    })
+                    sessionStorage.setItem('files', JSON.stringify(result));
+                    resolve(result);
+                });
+            } else {
+                sessionStorage.setItem('files', JSON.stringify(result));
+                resolve(result);
             }
-            sessionStorage.setItem('files', JSON.stringify(result));
-            resolve(result);
         });
     })
 }
@@ -222,15 +307,13 @@ function getAllFiles(listChannels, listUsers) {
  * @return string
  */
 function getUserNameByFile(listUsers, file) {
-    let result = 'no name';
     for (let j = 0; j < listUsers.length; j++) {
         if (file['user'] === listUsers[j]['id']) {
-            result = listUsers[j]['name'];
-            break;
+            return listUsers[j]['name'];
         }
     }
 
-    return result;
+    return 'no name';
 }
 
 /**

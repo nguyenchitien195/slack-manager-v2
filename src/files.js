@@ -1,15 +1,18 @@
 // in src/files.js
-import React from 'react';
+import React, {Fragment} from 'react';
 import { List, Filter, Datagrid, DatagridBody, Responsive, SimpleList, SingleFieldList } from 'react-admin';
 import { TextField, ImageField, FunctionField, DateField, ArrayField, ChipField, FileField } from 'react-admin';
-import { TextInput, SelectArrayInput, AutocompleteArrayInput } from 'react-admin';
+import { TextInput, SelectArrayInput, AutocompleteArrayInput, BulkDeleteButton } from 'react-admin';
 import Helper from './helper.js';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import Checkbox from '@material-ui/core/Checkbox';
+import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
+import { CardActions, CreateButton, ExportButton, RefreshButton } from 'react-admin';
 
 export const FileList = props => (
-    <List filters={<FileFilter />} {...props} >
+    <List filters={<FileFilter />} actions={<PostActions />} {...props} bulkActionButtons={<FileBulkActionButtons />}>
         <Responsive
             small={
                 <SimpleList
@@ -29,11 +32,57 @@ export const FileList = props => (
                     </ArrayField>
                     <ImageField label="Thumbnail" source="thumb_80" sortable={false} />
                     <FunctionField source="size" render={record => Helper.toSizeString(record.size)} />
-                    <DateField source="created" locales="fr-FR"/>
+                    <FunctionField source="created" label="Created" render={record => Helper.convertDate(record.created)}/>
                 </FileDatagrid>
             }
         />
     </List>
+);
+
+const PostActions = ({
+    bulkActions,
+    basePath,
+    currentSort,
+    displayedFilters,
+    exporter,
+    filters,
+    filterValues,
+    onUnselectItems,
+    resource,
+    selectedIds,
+    showFilter,
+    total
+}) => (
+    <CardActions>
+        {bulkActions && React.cloneElement(bulkActions, {
+            basePath,
+            filterValues,
+            resource,
+            selectedIds,
+            onUnselectItems,
+        })}
+        {filters && React.cloneElement(filters, {
+            resource,
+            showFilter,
+            displayedFilters,
+            filterValues,
+            context: 'button',
+        }) }
+        <ExportButton
+            disabled={total === 0}
+            resource={resource}
+            sort={currentSort}
+            filter={filterValues}
+            exporter={exporter}
+        />
+    </CardActions>
+);
+
+const FileBulkActionButtons = props => (
+    <Fragment>
+        {/* Add the default bulk delete action */}
+        <BulkDeleteButton {...props} />
+    </Fragment>
 );
 
 const FileFilter = (props) => (

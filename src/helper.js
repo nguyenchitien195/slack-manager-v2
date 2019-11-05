@@ -15,7 +15,7 @@ class Helper{
 
     static convertDate(unixtimestamp){
         // Months array
-        const months_arr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        // const months_arr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         // Convert timestamp to milliseconds
         var date = new Date(unixtimestamp*1000);
         // Year
@@ -23,14 +23,20 @@ class Helper{
         // Month
         // var month = months_arr[date.getMonth()];
         var month = date.getMonth() + 1;
+        if (month < 10) {
+            month = '0' + month;
+        }
         // Day
         var day = date.getDate();
+        if (day < 10) {
+            day = '0' + day;
+        }
         // Hours
-        var hours = date.getHours();
+        // var hours = date.getHours();
         // Minutes
-        var minutes = "0" + date.getMinutes();
+        // var minutes = "0" + date.getMinutes();
         // Seconds
-        var seconds = "0" + date.getSeconds();
+        // var seconds = "0" + date.getSeconds();
         // Display date time in dd-MM-yyyy format
         return day + '-' + month + '-' + year;
     }
@@ -76,7 +82,7 @@ class Helper{
     }
     
     static getSorting(order, field) {
-        return order == 'DESC' ? (a, b) => this.desc(a, b, field) : (a, b) => -(this.desc(a, b, field));
+        return order === 'DESC' ? (a, b) => this.desc(a, b, field) : (a, b) => -(this.desc(a, b, field));
     }
     // End of sorting
 
